@@ -58,7 +58,7 @@ class Coin:
               if diff > 0:
                   msg += buy.exchangeName + ": " + str(buy.getBuyPrice()) + " / " \
                       + sell.exchangeName + ": " + str(sell.getSellPrice()) \
-                      + " / " + str(diff)
+                      + " / " + str(diff) + " (" + str(round(diff/buy.getBuyPrice(), 5) * 100) + "%)"
           
             # Exchange prices
             for price in self.prices.values():
