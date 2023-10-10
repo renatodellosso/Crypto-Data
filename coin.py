@@ -55,9 +55,10 @@ class Coin:
             sell = self.getMaxSellPrice()
             if buy is not None and sell is not None:
               diff = self.getPriceDiff(buy, sell)
-              msg += buy.exchangeName + ": " + str(buy.getBuyPrice()) + " / " \
-                  + sell.exchangeName + ": " + str(sell.getSellPrice()) \
-                  + " / " + str(diff)
+              if diff > 0:
+                  msg += buy.exchangeName + ": " + str(buy.getBuyPrice()) + " / " \
+                      + sell.exchangeName + ": " + str(sell.getSellPrice()) \
+                      + " / " + str(diff)
           
             # Exchange prices
             for price in self.prices.values():
