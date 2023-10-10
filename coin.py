@@ -4,11 +4,9 @@ from price import Price
 
 class Coin:
     # We can't have multiple constructors in Python, so we'll use a flag
-    def __init__(self, data, isJson = True):
-        if isJson:
-            self.setDataFromJson(data)
-        else:
-            self.symbol = data
+    def __init__(self, data):
+        self.symbol = data
+        self.exchangeCount = 1
     
     def isValid(self):
         return hasattr(self, "prices")

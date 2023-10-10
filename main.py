@@ -39,14 +39,29 @@ for exchange in exchanges:
 print("Symbols (to USD or USDT): " + str(len(symbols)))
 
 # Create Coin objects
-coins = []
+coins = {}
 for symbol in symbols:
-    coins.append(Coin(symbol, False))
+  if symbol not in coins:
+    coins[symbol] = Coin(symbol)
+  else:
+    coins[symbol].exchangeCount += 1
 
-# Fetch data
+coins = list(coins.values())
+
+# Remove invalid coins
+print("Validating coins...")
 invalidCoins = []
+for coin in coins:
+  if coin.exchangeCount < 2:
+    invalidCoins.append(coin)
 
-print("Fetching data...")
+print("Removing " + str(len(invalidCoins)) + " invalid coins...")
+for coin in invalidCoins:
+  coins.remove(coin)
+  
+invalidCoins = [] # Reset so we can use again later
+
+print("Fetching data for " + str(len(coins)) + " coins...")
 
 queue = Queue()
 
