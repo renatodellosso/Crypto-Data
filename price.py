@@ -28,7 +28,8 @@ class Price:
         msg = "\n\t" + self.exchangeName + " - "
       
         if hasattr(self, "ask"):
-            msg += "B: " + str(self.bid) + ", A: " + str(self.ask) + ", S: " + str(self.spread())
+            msg += "B: " + str(self.bid) + ", A: " + str(self.ask) \
+                + ", S: " + str(self.spread())
         else:
             msg += "P: " + str(self.bid)
       

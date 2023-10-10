@@ -20,7 +20,7 @@ def fetchData():
 
         for exchange in exchanges:
             price = exchange.fetchPrice(coin.symbol)
-            if price != None:
+            if price is not None:
                 coin.prices[exchange.name] = price
 
         if(coin.isValid()):

@@ -15,20 +15,22 @@ class Coin:
     # Returns the lowest buy price available on all exchanges we found
     def getMinBuyPrice(self):
       if self.isValid():
-        minPrice = float("inf")
+        minPrice = None
         for price in self.prices.values():
-          if price.isValid():
-            minPrice = min(minPrice, price.getBuyPrice())
+          if (price.isValid() and minPrice is None) \
+              or (minPrice is not None and minPrice.getBuyPrice() > price.getBuyPrice()):
+              minPrice = price
         return minPrice
       return None
 
     # Returns the highest sell price available on all exchanges we found
     def getMaxSellPrice(self):
       if self.isValid():
-        maxPrice = float("-inf")
+        maxPrice = None
         for price in self.prices.values():
-          if price.isValid():
-            maxPrice = max(maxPrice, price.getSellPrice())
+          if (price.isValid() and maxPrice is None) or \
+              (maxPrice is not None and maxPrice.getSellPrice() < price.getSellPrice()):
+              maxPrice = price
         return maxPrice
       return None
 
@@ -42,7 +44,7 @@ class Coin:
       if buy is None or sell is None:
         return 0
 
-      return float(sell) - float(buy)
+      return float(sell.getSellPrice()) - float(buy.getBuyPrice())
     
     def __str__(self):
         if self.isValid():
@@ -53,7 +55,9 @@ class Coin:
             sell = self.getMaxSellPrice()
             if buy is not None and sell is not None:
               diff = self.getPriceDiff(buy, sell)
-              msg += str(buy) + " / " + str(sell) + " / " + str(diff)
+              msg += buy.exchangeName + ": " + str(buy.getBuyPrice()) + " / " \
+                  + sell.exchangeName + ": " + str(sell.getSellPrice()) \
+                  + " / " + str(diff)
           
             # Exchange prices
             for price in self.prices.values():
