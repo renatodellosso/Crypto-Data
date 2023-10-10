@@ -61,7 +61,7 @@ class Exchange:
         return self.handlePrice(data)
 
     def handlePrice(self, data):
-        return Price(data['bidPrice'], data['askPrice'])
+        return Price(self.name, data['bidPrice'], data['askPrice'])
 
 def getExchangeList():
     return [Binance(), Coinbase()]
@@ -108,4 +108,4 @@ class Coinbase(Exchange):
         rates = data['data']['rates']
         if 'USD' not in rates:
             return None
-        return Price(rates['USD'])
+        return Price(self.name, rates['USD'])

@@ -17,12 +17,11 @@ def fetchData():
 
     while True:
         coin = queue.get()
-        coin.prices = []
 
         for exchange in exchanges:
             price = exchange.fetchPrice(coin.symbol)
             if price != None:
-                coin.prices.append(price)
+                coin.prices[exchange.name] = price
 
         if(coin.isValid()):
             print(coin)
