@@ -6,10 +6,8 @@ from queue import Queue
 from threading import Thread
 from coin import Coin
 from exchange import getExchangeList
+from config import threadCount
 
-# Config
-threadCount = 8
-exchanges = getExchangeList()
 
 # Threaded HTTP requests
 def fetchData():
@@ -18,19 +16,20 @@ def fetchData():
     while True:
         coin = queue.get()
 
-        for exchange in exchanges:
+        for exchange in getExchangeList():
             price = exchange.fetchPrice(coin.symbol)
             if price is not None:
                 coin.prices[exchange.name] = price
 
-        if(coin.isValid()):
-            print(coin)
+        if coin.isValid():
+            coin.onFetch()
         else:
             invalidCoins.append(coin)
         queue.task_done()
 
+
 symbols = []
-for exchange in exchanges:
+for exchange in getExchangeList():
     coins = exchange.getCoinList()
     for coin in coins:
         symbols.append(coin)
@@ -40,10 +39,10 @@ print("Symbols (to USD or USDT): " + str(len(symbols)))
 # Create Coin objects
 coins = {}
 for symbol in symbols:
-  if symbol not in coins:
-    coins[symbol] = Coin(symbol)
-  else:
-    coins[symbol].exchangeCount += 1
+    if symbol not in coins:
+        coins[symbol] = Coin(symbol)
+    else:
+        coins[symbol].exchangeCount += 1
 
 coins = list(coins.values())
 
@@ -51,14 +50,14 @@ coins = list(coins.values())
 print("Validating coins...")
 invalidCoins = []
 for coin in coins:
-  if coin.exchangeCount < 2:
-    invalidCoins.append(coin)
+    if coin.exchangeCount < 2:
+        invalidCoins.append(coin)
 
 print("Removing " + str(len(invalidCoins)) + " invalid coins...")
 for coin in invalidCoins:
-  coins.remove(coin)
-  
-invalidCoins = [] # Reset so we can use again later
+    coins.remove(coin)
+
+invalidCoins = []  # Reset so we can use again later
 
 print("Fetching data for " + str(len(coins)) + " coins...")
 
@@ -72,7 +71,7 @@ for coin in coins:
 threads = []
 for i in range(threadCount):
     thread = Thread(target=fetchData)
-    thread.daemon = True # Stops the thread when the main thread ends
+    thread.daemon = True  # Stops the thread when the main thread ends
     thread.start()
     threads.append(thread)
 
