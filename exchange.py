@@ -8,8 +8,8 @@ class Exchange:
         self.name = name
         self.baseUrl = baseUrl
 
-    def getPriceFetchRoute(self):
-        return self.baseUrl
+    def getPriceFetchRoute(self, symbol):
+        return self.baseUrl + symbol
 
     def getCoinListRoute(self):
         return self.baseUrl
@@ -52,7 +52,7 @@ class Exchange:
     def fetchPrice(self, symbol):
         symbol = self.prepSymbol(symbol)
 
-        req = requests.get(self.getPriceFetchRoute() + symbol)
+        req = requests.get(self.getPriceFetchRoute(symbol))
 
         if req.status_code != 200:
             # print("Error fetching coin (" + symbol + ") from " + self.name + ": " + str(req.status_code))
@@ -62,7 +62,6 @@ class Exchange:
         return self.handlePrice(data)
 
     def handlePrice(self, data):
-        # return Price(self.name, data["bidPrice"], data["askPrice"]) # When we use 24hr ticker
         return Price(self.name, data["price"])
 
 
@@ -77,8 +76,8 @@ class Binance(Exchange):
     def __init__(self):
         super().__init__("Binance", "https://api.binance.us/api/v3/")
 
-    def getPriceFetchRoute(self):
-        return self.baseUrl + "avgPrice?symbol="  # "ticker/24hr?symbol=" # Not sure which to use
+    def getPriceFetchRoute(self, symbol):
+        return self.baseUrl + "ticker/price?symbol=" + symbol
 
     def getCoinListRoute(self):
         return self.baseUrl + "exchangeInfo"
@@ -94,8 +93,8 @@ class Coinbase(Exchange):
     def __init__(self):
         super().__init__("Coinbase", "https://api.coinbase.com/v2/")
 
-    def getPriceFetchRoute(self):
-        return self.baseUrl + "exchange-rates?currency="
+    def getPriceFetchRoute(self, symbol):
+        return self.baseUrl + "prices/" + symbol + "-usd/spot" #"exchange-rates?currency=" # buy and ask are also available
 
     def getCoinListRoute(self):
         return "https://api.exchange.coinbase.com/products"
@@ -112,7 +111,4 @@ class Coinbase(Exchange):
         return symbols
 
     def handlePrice(self, data):
-        rates = data["data"]["rates"]
-        if "USD" not in rates:
-            return None
-        return Price(self.name, rates["USD"])
+        return Price(self.name, data["data"]["amount"])

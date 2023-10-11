@@ -78,7 +78,7 @@ class Coin:
         global priceDiffThreshold
         diff = self.getPriceDiff()
         if diff.getDiffPercent() > priceDiffThreshold:
-            print(self, diff)
+            self.onDiffFound(diff)
 
     def onDiffFound(self, diff):
-        pass
+        print(self)
