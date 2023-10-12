@@ -6,12 +6,12 @@ from queue import Queue
 from threading import Thread
 from coin import Coin
 from exchange import getExchangeList
-from config import threadCount
+from globals import threadCount, coinDifferences, currentIteration
 
 
 # Threaded HTTP requests
 def fetchData():
-    global queue, invalidCoins
+    global queue, invalidCoins, currentIteration
 
     while True:
         coin = queue.get()
@@ -61,11 +61,8 @@ invalidCoins = []  # Reset so we can use again later
 
 print("Fetching data for " + str(len(coins)) + " coins...")
 
+# Create queue so threads can use it
 queue = Queue()
-
-# Add coins to queue
-for coin in coins:
-    queue.put(coin)
 
 # Create threads
 threads = []
@@ -75,11 +72,18 @@ for i in range(threadCount):
     thread.start()
     threads.append(thread)
 
-# Wait for queue to be empty
-while not queue.empty():
-    pass
+while True:
+    currentIteration += 1
+    print(
+        "-" * 20 + "\nStarting iteration " + str(currentIteration) + "...\n" + "-" * 20
+    )
 
-# Remove invalid coins
-print("Invalid coins: " + str(len(invalidCoins)))
-for coin in invalidCoins:
-    coins.remove(coin)
+    # Add coins to queue
+    for coin in coins:
+        queue.put(coin)
+
+    # Wait for queue to be empty
+    while not queue.empty():
+        pass
+
+    print("Differences Found:", str(len(coinDifferences)))

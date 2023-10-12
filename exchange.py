@@ -1,5 +1,7 @@
 import requests
 import json
+
+import urllib3
 from price import Price
 
 
@@ -41,18 +43,19 @@ class Exchange:
         # Parse JSON
         data = json.loads(req.text)
 
-        symbols = data["symbols"]
-        newSymbols = []
-        for symbol in symbols:
-            if symbol["quoteAsset"] == "USDT":
-                newSymbols.append(symbol["symbol"])
+        return data
 
-        return newSymbols
+    def validateCoin(self, data):
+        return True
 
     def fetchPrice(self, symbol):
         symbol = self.prepSymbol(symbol)
 
-        req = requests.get(self.getPriceFetchRoute(symbol))
+        try:
+            req = requests.get(self.getPriceFetchRoute(symbol))
+        except (requests.exceptions.ConnectionError, urllib3.exceptions.TimeoutError):
+            print("Connection error fetching coin (" + symbol + ") from " + self.name)
+            return None
 
         if req.status_code != 200:
             # print("Error fetching coin (" + symbol + ") from " + self.name + ": " + str(req.status_code))
@@ -82,6 +85,23 @@ class Binance(Exchange):
     def getCoinListRoute(self):
         return self.baseUrl + "exchangeInfo"
 
+    def handleCoinList(self, req):
+        # Parse JSON
+        data = json.loads(req.text)
+
+        symbols = data["symbols"]
+        newSymbols = []
+        for symbol in symbols:
+            if self.validateCoin(symbol):
+                newSymbols.append(symbol["symbol"])
+
+        return newSymbols
+
+    def validateCoin(self, data):
+        if data["quoteAsset"] == "USDT" and data["status"] == "TRADING":
+            return True
+        return False
+
     def prepSymbol(self, symbol):
         return symbol + "USDT"
 
@@ -94,7 +114,9 @@ class Coinbase(Exchange):
         super().__init__("Coinbase", "https://api.coinbase.com/v2/")
 
     def getPriceFetchRoute(self, symbol):
-        return self.baseUrl + "prices/" + symbol + "-usd/spot" #"exchange-rates?currency=" # buy and ask are also available
+        return (
+            self.baseUrl + "prices/" + symbol + "-usd/spot"
+        )  # "exchange-rates?currency=" # buy and ask are also available
 
     def getCoinListRoute(self):
         return "https://api.exchange.coinbase.com/products"

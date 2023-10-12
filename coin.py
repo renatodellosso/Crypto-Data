@@ -1,7 +1,6 @@
-import requests
-import json
+import datetime
 from price import Price
-from config import priceDiffThreshold
+from globals import minPriceDiff, maxPriceDiff, coinDifferences, diffTimeThreshold
 from pricedifference import PriceDifference
 
 
@@ -51,7 +50,7 @@ class Coin:
         if buy is None or sell is None:
             return 0
 
-        return PriceDifference(buy, sell)
+        return PriceDifference(self.symbol, buy, sell)
 
     def __str__(self):
         if self.isValid():
@@ -75,10 +74,32 @@ class Coin:
 
     def onFetch(self):
         # Check if price difference is above threshold
-        global priceDiffThreshold
+        global minPriceDiff, maxPriceDiff
         diff = self.getPriceDiff()
-        if diff.getDiffPercent() > priceDiffThreshold:
+        if (
+            diff.getDiffPercent() >= minPriceDiff
+            and diff.getDiffPercent() <= maxPriceDiff
+        ):
             self.onDiffFound(diff)
 
     def onDiffFound(self, diff):
-        print(self)
+        global coinDifferences, diffTimeThreshold
+
+        # Update coinDifferences
+        # Set times
+        diff.lastTime = datetime.datetime.now()
+        if diff.getId() in coinDifferences:
+            prevDiff = coinDifferences[diff.getId()]
+            if prevDiff.lastTime - diff.lastTime < datetime.timedelta(
+                seconds=diffTimeThreshold
+            ):
+                diff.startTime = prevDiff.startTime
+            else:
+                diff.startTime = diff.lastTime
+        else:
+            diff.startTime = diff.lastTime
+
+        coinDifferences[diff.getId()] = diff
+
+        print(diff)
+        # print(self)

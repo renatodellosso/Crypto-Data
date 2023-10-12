@@ -7,5 +7,5 @@ echo "Curling $binance ..."
 curl $binance
 
 coinbase="https://api.coinbase.com/v2/prices/${symbol}-usd/spot"
-echo "Curling $binance ..."
-curl $binance
+echo "Curling $coinbase ..."
+curl $coinbase

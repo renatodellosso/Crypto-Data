@@ -1,7 +1,13 @@
 class PriceDifference:
-    def __init__(self, buy, sell):
+    def __init__(self, symbol, buy, sell):
+        self.symbol = symbol
         self.buy = buy
         self.sell = sell
+
+        self.startTime = None
+        self.lastTime = None
+        self.startIteration = 0
+        self.lastIteration = 0
 
     def getDiff(self):
         return self.sell.getSellPrice() - self.buy.getBuyPrice()
@@ -9,9 +15,14 @@ class PriceDifference:
     def getDiffPercent(self):
         return self.getDiff() / self.buy.getBuyPrice()
 
+    def getId(self):
+        return self.symbol + "-" + self.buy.exchangeName + "-" + self.sell.exchangeName
+
     def __str__(self):
         return (
-            self.buy.exchangeName
+            self.symbol
+            + ": "
+            + self.buy.exchangeName
             + ": "
             + str(self.buy.getBuyPrice())
             + " / "
@@ -23,4 +34,6 @@ class PriceDifference:
             + " ("
             + str(round(self.getDiffPercent(), 5) * 100)
             + "%)"
+            + " Time: "
+            + str(self.lastTime - self.startTime)
         )
