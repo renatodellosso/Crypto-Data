@@ -6,24 +6,24 @@ from price import Price
 
 
 class Exchange:
-    def __init__(self, name, baseUrl):
+    def __init__(self, name: str, baseUrl: str):
         self.name = name
         self.baseUrl = baseUrl
 
-    def getPriceFetchRoute(self, symbol):
+    def getPriceFetchRoute(self, symbol: str) -> str:
         return self.baseUrl + symbol
 
-    def getCoinListRoute(self):
+    def getCoinListRoute(self) -> str:
         return self.baseUrl
 
-    def prepSymbol(self, symbol):
+    def prepSymbol(self, symbol: str) -> str:
         return symbol
 
-    def unprepSymbol(self, symbol):
+    def unprepSymbol(self, symbol) -> str:
         return symbol
 
     # Returns a list of coin symbols as strings
-    def getCoinList(self):
+    def getCoinList(self) -> list:
         print("Fetching coin list for " + self.name + "...")
 
         req = requests.get(self.getCoinListRoute())
@@ -39,22 +39,33 @@ class Exchange:
 
         return coinList
 
-    def handleCoinList(self, req):
+    def handleCoinList(self, req: requests.Response) -> dict:
         # Parse JSON
         data = json.loads(req.text)
 
         return data
 
-    def validateCoin(self, data):
+    def validateCoin(self, data: dict) -> bool:
         return True
 
-    def fetchPrice(self, symbol):
+    def fetchPrice(self, symbol: str) -> Price:
         symbol = self.prepSymbol(symbol)
 
         try:
             req = requests.get(self.getPriceFetchRoute(symbol))
-        except (requests.exceptions.ConnectionError, urllib3.exceptions.TimeoutError):
-            print("Connection error fetching coin (" + symbol + ") from " + self.name)
+        except (
+            requests.exceptions.ConnectionError,
+            urllib3.exceptions.TimeoutError,
+            requests.exceptions.ReadTimeout,
+        ) as ex:
+            print(
+                "Connection error fetching coin ("
+                + symbol
+                + ") from "
+                + self.name
+                + ": "
+                + str(ex)
+            )
             return None
 
         if req.status_code != 200:
@@ -64,13 +75,13 @@ class Exchange:
         data = json.loads(req.text)
         return self.handlePrice(data)
 
-    def handlePrice(self, data):
+    def handlePrice(self, data: dict) -> Price:
         return Price(self.name, data["price"])
 
 
-def getExchangeList():
+def getExchangeList() -> list:
     if "exchanges" not in locals():
-        exchanges = [Binance(), Coinbase()]
+        exchanges = (Binance(), Coinbase())
     return exchanges
 
 

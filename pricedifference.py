@@ -1,3 +1,7 @@
+from datetime import timedelta
+from globals import minPriceDiff, maxPriceDiff
+
+
 class PriceDifference:
     def __init__(self, symbol, buy, sell):
         self.symbol = symbol
@@ -6,17 +10,24 @@ class PriceDifference:
 
         self.startTime = None
         self.lastTime = None
-        self.startIteration = 0
-        self.lastIteration = 0
 
-    def getDiff(self):
+    def getDiff(self) -> float:
         return self.sell.getSellPrice() - self.buy.getBuyPrice()
 
-    def getDiffPercent(self):
+    def getDiffPercent(self) -> float:
         return self.getDiff() / self.buy.getBuyPrice()
 
-    def getId(self):
+    def getId(self) -> str:
         return self.symbol + "-" + self.buy.exchangeName + "-" + self.sell.exchangeName
+
+    def isValid(self) -> bool:
+        percent = self.getDiffPercent()
+        return percent >= minPriceDiff and percent <= maxPriceDiff
+
+    def getTimeDelta(self) -> timedelta:
+        if self.lastTime is None or self.startTime is None:
+            return None
+        return self.lastTime - self.startTime
 
     def __str__(self):
         return (
@@ -35,5 +46,5 @@ class PriceDifference:
             + str(round(self.getDiffPercent(), 5) * 100)
             + "%)"
             + " Time: "
-            + str(self.lastTime - self.startTime)
+            + str(self.getTimeDelta())
         )

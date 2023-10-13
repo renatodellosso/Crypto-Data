@@ -11,11 +11,11 @@ class Coin:
         self.exchangeCount = 1
         self.prices = {}
 
-    def isValid(self):
+    def isValid(self) -> bool:
         return hasattr(self, "prices")
 
     # Returns the lowest buy price available on all exchanges we found
-    def getMinBuyPrice(self):
+    def getMinBuyPrice(self) -> Price:
         if self.isValid():
             minPrice = None
             for price in self.prices.values():
@@ -28,7 +28,7 @@ class Coin:
         return None
 
     # Returns the highest sell price available on all exchanges we found
-    def getMaxSellPrice(self):
+    def getMaxSellPrice(self) -> Price:
         if self.isValid():
             maxPrice = None
             for price in self.prices.values():
@@ -41,7 +41,7 @@ class Coin:
         return None
 
     # Returns sell price minus buy price
-    def getPriceDiff(self, buy=-1.0, sell=-1.0):
+    def getPriceDiff(self, buy=-1.0, sell=-1.0) -> PriceDifference:
         if buy == -1.0:
             buy = self.getMinBuyPrice()
         if sell == -1.0:
@@ -72,17 +72,15 @@ class Coin:
         else:
             return self.symbol
 
-    def onFetch(self):
+    def onFetch(self, diff: PriceDifference = None) -> PriceDifference:
         # Check if price difference is above threshold
         global minPriceDiff, maxPriceDiff
         diff = self.getPriceDiff()
-        if (
-            diff.getDiffPercent() >= minPriceDiff
-            and diff.getDiffPercent() <= maxPriceDiff
-        ):
-            self.onDiffFound(diff)
+        if diff is not None and diff.isValid():
+            return self.onDiffFound(diff)
+        return None
 
-    def onDiffFound(self, diff):
+    def onDiffFound(self, diff: PriceDifference) -> PriceDifference:
         global coinDifferences, diffTimeThreshold
 
         # Update coinDifferences
@@ -103,3 +101,5 @@ class Coin:
 
         print(diff)
         # print(self)
+
+        return diff

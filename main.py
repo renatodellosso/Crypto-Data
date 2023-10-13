@@ -1,7 +1,5 @@
-# Importing libraries
-print("Importing libraries...")
-import requests
-import json
+import time as timeModule
+from datetime import timedelta
 from queue import Queue
 from threading import Thread
 from coin import Coin
@@ -13,19 +11,30 @@ from globals import threadCount, coinDifferences, currentIteration
 def fetchData():
     global queue, invalidCoins, currentIteration
 
-    while True:
-        coin = queue.get()
+    try:
+        while True:
+            coin = queue.get()
 
-        for exchange in getExchangeList():
-            price = exchange.fetchPrice(coin.symbol)
-            if price is not None:
-                coin.prices[exchange.name] = price
+            for exchange in getExchangeList():
+                price = exchange.fetchPrice(coin.symbol)
+                if price is not None:
+                    coin.prices[exchange.name] = price
 
-        if coin.isValid():
-            coin.onFetch()
-        else:
-            invalidCoins.append(coin)
-        queue.task_done()
+            if coin.isValid():
+                diff = coin.getPriceDiff()
+
+                diff = coin.onFetch(
+                    diff
+                )  # Modifications to diff in onFetch() do not seem to automatically aply
+
+                if diff is not None and diff.isValid():
+                    currentDiffs[diff.getId()] = diff.getTimeDelta()
+            else:
+                invalidCoins.append(coin)
+            queue.task_done()
+    except Exception as ex:
+        print("Error in thread: " + str(ex))
+        exit()
 
 
 symbols = []
@@ -61,8 +70,11 @@ invalidCoins = []  # Reset so we can use again later
 
 print("Fetching data for " + str(len(coins)) + " coins...")
 
-# Create queue so threads can use it
+# Create variables that threads use
 queue = Queue()
+prevDiffs = {}  # Stored as {symbol: TimeDelta}
+currentDiffs = {}  # Stored as {symbol: TimeDelta}
+diffTimes = []
 
 # Create threads
 threads = []
@@ -72,18 +84,74 @@ for i in range(threadCount):
     thread.start()
     threads.append(thread)
 
+
+def finishIteration(final=False):
+    global timeModule
+    timeModule.sleep(0.5)
+
+    global prevDiffs, currentDiffs, diffTimes
+
+    # Compare current and prev diffs
+
+    # Update times for continuing diffs and remove finished diffs
+    toRemove = []
+    for diff, time in prevDiffs.items():
+        if final or diff not in currentDiffs.keys():
+            print("Closing diff:", diff, "Time:", time)
+            diffTimes.append(time)
+            toRemove.append(diff)
+
+    print("Differences Removed:", str(len(toRemove)))
+    for diff in toRemove:
+        del prevDiffs[diff]
+
+    # Add new diffs
+    for diff, time in currentDiffs.items():
+        if diff not in prevDiffs:
+            print("Opening diff: " + diff)
+        prevDiffs[diff] = time
+
+    print("Current Differences Found:", str(len(currentDiffs)))
+    print("Total Closed Differences:", str(len(diffTimes)))
+
+    currentDiffs = {}
+
+
 while True:
-    currentIteration += 1
-    print(
-        "-" * 20 + "\nStarting iteration " + str(currentIteration) + "...\n" + "-" * 20
-    )
+    try:
+        currentIteration += 1
+        print(
+            "-" * 20
+            + "\nStarting iteration "
+            + str(currentIteration)
+            + "...\n"
+            + "-" * 20
+        )
 
-    # Add coins to queue
-    for coin in coins:
-        queue.put(coin)
+        # Add coins to queue
+        for coin in coins:
+            queue.put(coin)
 
-    # Wait for queue to be empty
-    while not queue.empty():
-        pass
+        # Wait for queue to be empty
+        while not queue.empty():
+            pass
 
-    print("Differences Found:", str(len(coinDifferences)))
+        finishIteration()
+
+    except KeyboardInterrupt:
+        print("Keyboard interrupt detected, ending program...")
+        finishIteration(True)
+        break
+
+# Find avg time
+if len(diffTimes) == 0:
+    print("No differences found")
+    exit()
+
+avgTime = 0
+for time in diffTimes:
+    if time is not None:
+        avgTime += time.total_seconds()
+avgTime /= len(diffTimes)
+
+print("Average Time: " + str(timedelta(seconds=avgTime)))

@@ -1,5 +1,5 @@
 # Config
-threadCount = 8
+threadCount = 16
 minPriceDiff = 0.02  # Out of 1
 maxPriceDiff = 0.2  # Out of 1
 diffTimeThreshold = 60  # Seconds
