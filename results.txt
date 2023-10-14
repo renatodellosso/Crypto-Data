@@ -1,0 +1,4 @@
+Results (ran from 4:40 PM - 11:05 PM, 6 hours 25 minutes):
+Current Differences Found: 16
+Total Closed Differences: 337
+Average Time: 2:16:10.313700
