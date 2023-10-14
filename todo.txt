@@ -1,0 +1,7 @@
+Todo:
+-Fees
+-Clean up the code
+-Test the concept
+-Add transfers
+-Add buying
+-Add selling

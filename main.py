@@ -4,7 +4,7 @@ from queue import Queue
 from threading import Thread
 from coin import Coin
 from exchange import getExchangeList
-from globals import threadCount, coinDifferences, currentIteration
+from globals import threadCount, currentIteration
 
 
 # Threaded HTTP requests
@@ -15,31 +15,40 @@ def fetchData():
         while True:
             coin = queue.get()
 
+            # Get the price for the coin from each exchange
             for exchange in getExchangeList():
                 price = exchange.fetchPrice(coin.symbol)
                 if price is not None:
                     coin.prices[exchange.name] = price
 
+            # If we have enough data to make calculations
             if coin.isValid():
+                # Calculate the maximum price difference
                 diff = coin.getPriceDiff()
 
-                diff = coin.onFetch(
-                    diff
-                )  # Modifications to diff in onFetch() do not seem to automatically aply
+                # Perform any additional calculations
+                diff = coin.onFetch(diff)
 
+                # If the price difference is valid
                 if diff is not None and diff.isValid():
+                    # Record the difference in price
                     currentDiffs[diff.getId()] = diff.getTimeDelta()
             else:
+                # If we don't have enough data, log the coin as invalid
                 invalidCoins.append(coin)
             queue.task_done()
     except Exception as ex:
+        # Log any exceptions
         print("Error in thread: " + str(ex))
         exit()
 
 
+# Get the list of all coins from all exchanges
 symbols = []
 for exchange in getExchangeList():
+    # Get the list of coins for an exchange
     coins = exchange.getCoinList()
+    # Add each coin to the list of all symbols
     for coin in coins:
         symbols.append(coin)
 
@@ -117,6 +126,7 @@ def finishIteration(final=False):
     currentDiffs = {}
 
 
+# Main loop
 while True:
     try:
         currentIteration += 1
@@ -144,14 +154,14 @@ while True:
         break
 
 # Find avg time
-if len(diffTimes) == 0:
-    print("No differences found")
-    exit()
+if len(diffTimes) == 0:  # If there are no diffTimes
+    print("No differences found")  # Print that no differences were found
+    exit()  # Exit the program
 
-avgTime = 0
-for time in diffTimes:
-    if time is not None:
-        avgTime += time.total_seconds()
-avgTime /= len(diffTimes)
+avgTime = 0  # Create a variable called avgTime and set it to 0
+for time in diffTimes:  # For every time in the diffTimes list
+    if time is not None:  # If time is not None
+        avgTime += time.total_seconds()  # Add the total seconds of time to avgTime
+avgTime /= len(diffTimes)  # Divide avgTime by the length of diffTimes
 
-print("Average Time: " + str(timedelta(seconds=avgTime)))
+print("Average Time: " + str(timedelta(seconds=avgTime)))  # Print the average time

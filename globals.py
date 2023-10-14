@@ -1,9 +1,9 @@
 # Config
-threadCount = 16
-minPriceDiff = 0.02  # Out of 1
-maxPriceDiff = 0.2  # Out of 1
-diffTimeThreshold = 60  # Seconds
+threadCount: int = 16
+minPriceDiff: float = 0.02  # Out of 1
+maxPriceDiff: float = 0.2  # Out of 1
+diffTimeThreshold: int = 60  # Seconds
 
 # Global variables
-currentIteration = 0
-coinDifferences = {}  # Structured as {symbol: PriceDifference}
+currentIteration: int = 0
+coinDifferences: dict = {}  # Structured as {symbol: PriceDifference}
