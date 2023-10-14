@@ -1,5 +1,5 @@
 import time as timeModule
-from datetime import timedelta
+from datetime import datetime, timedelta
 from queue import Queue
 from threading import Thread
 from coin import Coin
@@ -95,7 +95,7 @@ for i in range(threadCount):
 
 
 def finishIteration(final=False):
-    global timeModule
+    global timeModule, loopStartTime
     timeModule.sleep(0.5)
 
     global prevDiffs, currentDiffs, diffTimes
@@ -120,15 +120,22 @@ def finishIteration(final=False):
             print("Opening diff: " + diff)
         prevDiffs[diff] = time
 
+    timeTaken = datetime.now() - loopStartTime
+
     print("Current Differences Found:", str(len(currentDiffs)))
     print("Total Closed Differences:", str(len(diffTimes)))
+    print("Time Taken:", str(timeTaken))
 
     currentDiffs = {}
 
 
+loopStartTime = datetime.now()
+
 # Main loop
 while True:
     try:
+        loopStartTime = datetime.now()
+
         currentIteration += 1
         print(
             "-" * 20

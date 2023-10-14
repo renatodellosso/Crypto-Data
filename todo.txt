@@ -1,5 +1,5 @@
 Todo:
--Fees
+-Fees - Seems to be <0.5% on Binance and Coinbase, so ignoring for now
 -Clean up the code
 -Test the concept
 -Add transfers

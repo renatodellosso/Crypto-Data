@@ -1,6 +1,6 @@
 import datetime
 from price import Price
-from globals import minPriceDiff, maxPriceDiff, coinDifferences, diffTimeThreshold
+from globals import minPriceDiff, maxPriceDiff, diffTimeThreshold
 from pricedifference import PriceDifference
 
 
@@ -10,6 +10,7 @@ class Coin:
         self.symbol = data
         self.exchangeCount = 1
         self.prices = {}
+        self.prevDifferences = {}
 
     def isValid(self) -> bool:
         return hasattr(self, "prices")
@@ -81,13 +82,13 @@ class Coin:
         return None
 
     def onDiffFound(self, diff: PriceDifference) -> PriceDifference:
-        global coinDifferences, diffTimeThreshold
+        global diffTimeThreshold
 
         # Update coinDifferences
         # Set times
         diff.lastTime = datetime.datetime.now()
-        if diff.getId() in coinDifferences:
-            prevDiff = coinDifferences[diff.getId()]
+        if diff.getId() in self.prevDifferences:
+            prevDiff = self.prevDifferences[diff.getId()]
             if prevDiff.lastTime - diff.lastTime < datetime.timedelta(
                 seconds=diffTimeThreshold
             ):
@@ -97,7 +98,7 @@ class Coin:
         else:
             diff.startTime = diff.lastTime
 
-        coinDifferences[diff.getId()] = diff
+        self.prevDifferences[diff.getId()] = diff
 
         print(diff)
         # print(self)
