@@ -30,8 +30,14 @@ def fetch(url: str, expectedErrorCodes=list()) -> requests.Response:
     except TimeoutError:
         print("Request timed out while fetching", url)
         return None
+    except requests.exceptions.ConnectionError:
+        print("Connection error while fetching", url)
+        return None
     except urllib3.exceptions.MaxRetryError:
         print("Connection pool error while fetching", url)
+        return None
+    except Exception as e:
+        print("Error while fetching", url, ":", e)
         return None
 
     if req.status_code != 200 and req.status_code not in expectedErrorCodes:
@@ -148,6 +154,15 @@ def fetchTriangleList():
     print("Found triangles:", len(triangles))
 
 
+def filterTriangles(triangles: dict) -> dict:
+    global minMargin, maxMargin
+    return dict(
+        (symbols, value)
+        for symbols, value in triangles.items()
+        if value is not None and value > minMargin and value < maxMargin
+    )
+
+
 def findTriangles():
     # Add triangles to fetchQueue
     global fetchQueue, triangles, fetchesRemainingLogInterval
@@ -169,11 +184,7 @@ def findTriangles():
 
     # Filter to triangles with a margin between minMargin and maxMargin
     global triangleData
-    triangleData = dict(
-        (symbols, value)
-        for symbols, value in triangleData.items()
-        if value is not None and value > minMargin and value < maxMargin
-    )
+    triangleData = filterTriangles(triangleData)
 
 
 def startIteration():
@@ -191,11 +202,7 @@ def finishIteration(final: bool = False):
     global triangleData
 
     # Refilter triangles, just to be safe. We were running into an issue with invalid triangles, so we filter again
-    triangleData = dict(
-        (symbols, value)
-        for symbols, value in triangleData.items()
-        if value is not None and value > minMargin and value < maxMargin
-    )
+    triangleData = filterTriangles(triangleData)
 
     # Log all triangles
     print("Triangles:", len(triangleData))
