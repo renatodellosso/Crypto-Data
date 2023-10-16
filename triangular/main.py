@@ -9,8 +9,8 @@ import urllib3
 
 # Config
 ignoredSymbols = ["USDC", "BUSD", "WBTC"]
-# 0.1% fee on each trade, and we want to make at least 0.1% profit
-minMargin = 1.001**3 + 0.001
+# 0.1% fee on each trade, and we want to make at least 0.2% profit
+minMargin = 1.001**3 + 0.002
 maxMargin = 1.1
 threads = 3
 pauseFetches = False
